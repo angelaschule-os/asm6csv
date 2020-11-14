@@ -102,7 +102,6 @@ func generateTemplate() {
 			"last_name",
 			"class_id",
 			"course_id",
-			"roster_id",
 			"teacher_id",
 			"password_policy", // 4, 6, 8 or empty
 			"location_name",
@@ -116,6 +115,18 @@ func generateTemplate() {
 		log.Fatalln(err)
 	}
 }
+
+// idexes if template fields
+const (
+	STUDENTID = 0
+	FIRSTNAME = 1
+	LASTNAME  = 2
+	CLASSID   = 3
+	COURSEID  = 4
+	TEACHERID = 5
+	PWPOLICY  = 6
+	LOCATION  = 7
+)
 
 // check for duplicates
 func findInSlice(slice [][]string, id string) bool {
@@ -147,30 +158,32 @@ func generateSixpack() {
 	for _, row := range records[1:] {
 
 		// columns which are needed several times
-		studentID := row[0]
-		locationID := slug.Make(row[8])
+		studentID := row[STUDENTID]
+		locationID := slug.Make(row[LOCATION])
 
-		if !findInSlice(classes, row[3]) {
-			classes = append(classes, []string{row[3], "", row[4], "", "", "", locationID})
+		if !findInSlice(classes, row[CLASSID]) {
+			classes = append(classes, []string{row[CLASSID], "", row[COURSEID], "", "", "", locationID})
 		}
 
-		if !findInSlice(courses, row[4]) {
-			courses = append(courses, []string{row[4], "", "", locationID})
+		if !findInSlice(courses, row[COURSEID]) {
+			courses = append(courses, []string{row[COURSEID], "", "", locationID})
 		}
 
 		if !findInSlice(locations, locationID) {
-			locations = append(locations, []string{locationID, row[8]})
+			locations = append(locations, []string{locationID, row[LOCATION]})
 		}
 
-		if !findInSlice(rosters, row[5]) {
-			rosters = append(rosters, []string{row[5], row[3], studentID})
+		// computing generic roster_id from class_id and student_id
+		rosterID := row[CLASSID] + studentID
+		if !findInSlice(rosters, rosterID) {
+			rosters = append(rosters, []string{rosterID, row[CLASSID], studentID})
 		}
 
-		if !findInSlice(staff, row[6]) {
-			staff = append(staff, []string{row[6], "", "Lehrer", row[6], "", "", locationID})
+		if !findInSlice(staff, row[TEACHERID]) {
+			staff = append(staff, []string{row[TEACHERID], "", "Lehrer", row[TEACHERID], "", "", locationID})
 		}
 
-		students = append(students, []string{studentID, "", row[1], "", row[2], "", "", "", row[7], locationID})
+		students = append(students, []string{studentID, "", row[FIRSTNAME], "", row[LASTNAME], "", "", "", row[PWPOLICY], locationID})
 	}
 
 	// write the 6 files for upload
