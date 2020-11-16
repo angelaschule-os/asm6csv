@@ -7,6 +7,7 @@ import (
 	"log"
 	"os"
 
+	// used for computing of ids
 	"github.com/gosimple/slug"
 )
 
@@ -76,12 +77,14 @@ var students = [][]string{
 	},
 }
 
-// write data into csv file
+// write data into filename in csv format (comma seperated)
 func writeCsv(data [][]string, filename string) {
+	// TODO: check if file exists
 	outFile, err := os.Create(filename)
 	if err != nil {
 		log.Fatalln(err)
 	}
+	// make sure that file is closed
 	defer outFile.Close()
 
 	w := csv.NewWriter(outFile)
@@ -91,9 +94,10 @@ func writeCsv(data [][]string, filename string) {
 	}
 }
 
-// write a template file
+// write a template to filename
 // enter your data into the template file
 func generateTemplate(filename string) {
+	// columns header, add one row per student
 	records := [][]string{
 		{
 			"student_id",
@@ -145,7 +149,7 @@ func generateSixpack(filename string) {
 		log.Fatalln(err)
 	}
 
-	// parse the data
+	// parse all the data to arrays
 	// drop header line
 	for _, row := range records[1:] {
 
@@ -153,6 +157,7 @@ func generateSixpack(filename string) {
 		studentID := row[STUDENTID]
 		locationID := slug.Make(row[LOCATION])
 
+		// no duplicates
 		if !findInSlice(classes, row[CLASSID]) {
 			classes = append(classes, []string{row[CLASSID], "", row[COURSEID], "", "", "", locationID})
 		}
@@ -178,7 +183,7 @@ func generateSixpack(filename string) {
 		students = append(students, []string{studentID, "", row[FIRSTNAME], "", row[LASTNAME], "", "", "", row[PWPOLICY], locationID})
 	}
 
-	// write the 6 files for upload
+	// write the arrays into 6 files for upload
 	writeCsv(classes, "classes.csv")
 	writeCsv(courses, "courses.csv")
 	writeCsv(locations, "locations.csv")
@@ -191,9 +196,10 @@ func main() {
 
 	// cmd flags
 	var template bool
-
 	flag.BoolVar(&template, "template", false, "Generate csv template")
 	flag.BoolVar(&template, "t", false, "Generate csv template (shorthand).")
+
+	// pretty usage message
 	flag.Usage = func() {
 		fmt.Printf("Usage: asm6csv [options] filename.csv\nOptions:\n")
 		flag.PrintDefaults()
@@ -203,12 +209,14 @@ func main() {
 
 	// flag switch
 	if template {
+		// check is a filename is passed on the commandline
 		if len(flag.Args()) > 0 {
 			generateTemplate(flag.Args()[0])
 		} else {
 			log.Fatalln("No filename given.")
 		}
 	} else {
+		// check is a filename is passed on the commandline
 		if len(flag.Args()) > 0 {
 			generateSixpack(flag.Args()[0])
 		} else {
