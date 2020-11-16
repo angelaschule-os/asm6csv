@@ -3,6 +3,7 @@ package main
 import (
 	"encoding/csv"
 	"flag"
+	"fmt"
 	"log"
 	"os"
 
@@ -94,7 +95,7 @@ func writeCsv(data [][]string, filename string) {
 // see: template/t flag with ">" pipe
 // enter your data into the template file
 // TODO: filename
-func generateTemplate() {
+func generateTemplate(filename string) {
 	records := [][]string{
 		{
 			"student_id",
@@ -107,13 +108,7 @@ func generateTemplate() {
 			"location_name",
 		},
 	}
-
-	w := csv.NewWriter(os.Stdout)
-	w.WriteAll(records) // calls Flush internally
-
-	if err := w.Error(); err != nil {
-		log.Fatalln(err)
-	}
+	writeCsv(records, filename)
 }
 
 // idexes if template fields
@@ -138,10 +133,10 @@ func findInSlice(slice [][]string, id string) bool {
 	return false
 }
 
-func generateSixpack() {
+func generateSixpack(filename string) {
 	// read the template file
 	// TODO: get filename from commandline or dropping file
-	inFile, err := os.Open("template.csv")
+	inFile, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
 	}
@@ -174,7 +169,7 @@ func generateSixpack() {
 		}
 
 		// computing generic roster_id from class_id and student_id
-		rosterID := row[CLASSID] + studentID
+		rosterID := row[CLASSID] + "-" + studentID
 		if !findInSlice(rosters, rosterID) {
 			rosters = append(rosters, []string{rosterID, row[CLASSID], studentID})
 		}
@@ -202,13 +197,25 @@ func main() {
 
 	flag.BoolVar(&template, "template", false, "Generate csv template")
 	flag.BoolVar(&template, "t", false, "Generate csv template (shorthand).")
+	flag.Usage = func() {
+		fmt.Printf("Usage: asm6csv [options] filename.csv\nOptions:\n")
+		flag.PrintDefaults()
+	}
 
 	flag.Parse()
 
 	// flag switch
 	if template {
-		generateTemplate()
+		if len(flag.Args()) > 0 {
+			generateTemplate(flag.Args()[0])
+		} else {
+			log.Fatalln("No filename given.")
+		}
 	} else {
-		generateSixpack()
+		if len(flag.Args()) > 0 {
+			generateSixpack(flag.Args()[0])
+		} else {
+			log.Fatalln("No filename given.")
+		}
 	}
 }
