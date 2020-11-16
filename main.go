@@ -92,9 +92,7 @@ func writeCsv(data [][]string, filename string) {
 }
 
 // write a template file
-// see: template/t flag with ">" pipe
 // enter your data into the template file
-// TODO: filename
 func generateTemplate(filename string) {
 	records := [][]string{
 		{
@@ -135,7 +133,6 @@ func findInSlice(slice [][]string, id string) bool {
 
 func generateSixpack(filename string) {
 	// read the template file
-	// TODO: get filename from commandline or dropping file
 	inFile, err := os.Open(filename)
 	if err != nil {
 		log.Fatalln(err)
